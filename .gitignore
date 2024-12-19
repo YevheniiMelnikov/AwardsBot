@@ -77,3 +77,4 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 *~
 ops/.env
+__pycache__/
