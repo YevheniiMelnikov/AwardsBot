@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "pythonproject1"
+version = "0.1.0"
+description = ""
+authors = ["Yevhenii Melnykov <yevhenii.melnykov@codeit.local>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+aiogram = "^3.15.0"
+python-dotenv = "^1.0.1"
+redis = "^5.2.1"
+django = "^5.1.4"
+djangorestframework = "^3.15.2"
+asyncpg = "^0.30.0"
+psycopg2-binary = "^2.9.10"
+djangorestframework-api-key = "^3.0.0"
+pyyaml = "^6.0.2"
+httpx = "^0.28.1"
+django-jazzmin = "^3.0.1"
+loguru = "^0.7.3"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.8.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.ruff]
+line-length = 120
+exclude = [
+  ".git",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".env",
+  "env",
+  "venv",
+  ".venv",
+]

@@ -1,0 +1,55 @@
+services:
+  api:
+    container_name: api
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: ops/api.Dockerfile
+    volumes:
+      - ../:/app
+    ports:
+      - '8000:8000'
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  bot:
+    container_name: bot
+    build:
+      context: ../
+      dockerfile: ops/Dockerfile
+    depends_on:
+      - api
+      - db
+      - redis
+    ports:
+      - "8080:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  db:
+    container_name: db
+    restart: unless-stopped
+    image: postgres:17.2
+    ports:
+      - '5432:5432'
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  redis:
+    container_name: redis
+    restart: unless-stopped
+    image: redis:7.4.0
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/var/lib/redis
+
+volumes:
+  postgres_data:
+  redis_data:

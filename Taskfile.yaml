@@ -1,0 +1,47 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build Docker-container
+    cmds:
+      - docker-compose docker-compose.yaml build
+
+  up:
+    desc: Start Docker-containers
+    cmds:
+      - docker-compose docker-compose.yaml up
+
+  down:
+    desc: Stop Docker-containers
+    cmds:
+      - docker-compose -docker-compose.yaml down
+
+  makemigrations:
+    desc: Make migrations
+    cmds:
+      - python api/manage.py makemigrations
+
+  migrate:
+    desc: Migrate database
+    cmds:
+      - python api/manage.py migrate
+
+  runserver:
+    desc: Launch server
+    cmds:
+      - python api/manage.py runserver
+
+  createsuperuser:
+    desc: Create superuser
+    cmds:
+      - python api/manage.py createsuperuser
+
+  lint:
+    desc: Run linters
+    cmds:
+      - ruff check --fix --config=pyproject.toml
+
+  format:
+    desc: Run formatter
+    cmds:
+      - ruff format --config=pyproject.toml
