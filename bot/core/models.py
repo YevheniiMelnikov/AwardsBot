@@ -1,19 +1,17 @@
-from dataclasses import dataclass
-from typing import Type, TypeVar, Any
+from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
 T = TypeVar("T", bound="BaseEntity")
 
 
 @dataclass
 class BaseEntity:
-    @classmethod
-    def from_dict(cls: Type[T], data: dict[str, Any]) -> T:
-        fields = {field.name for field in cls.__dataclass_fields__.values()}
-        filtered_data = {key: data.get(key) for key in fields if key in data}
-        return cls(**filtered_data)
+    def to_dict(self) -> dict:
+        return {key: getattr(self, key) for key in self.__annotations__.keys()}
 
-    def to_dict(self) -> dict[str, Any]:
-        return {field.name: getattr(self, field.name) for field in self.__dataclass_fields__.values()}
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        return cls(**{key: data[key] for key in data.keys() if key in cls.__annotations__})
 
     def __repr__(self) -> str:
         field_str = ", ".join(f"{name}={getattr(self, name)!r}" for name in self.__dataclass_fields__)
@@ -24,3 +22,26 @@ class BaseEntity:
 class User(BaseEntity):
     tg_id: int
     username: str
+
+
+@dataclass
+class Candidate(BaseEntity):
+    username: str
+    nominations: list["CandidateNomination"] = field(default_factory=list)
+
+    def total_votes(self) -> int:
+        return sum(nomination.votes for nomination in self.nominations)
+
+
+@dataclass
+class Nomination(BaseEntity):
+    name: str
+    candidates: list["CandidateNomination"] = field(default_factory=list)
+    winner: "Candidate" = None
+
+
+@dataclass
+class CandidateNomination(BaseEntity):
+    candidate: Candidate
+    nomination: Nomination
+    votes: int = 0

@@ -6,7 +6,7 @@ import httpx
 import loguru
 from aiogram.types import Message
 
-from bot.core.models import User
+from bot.core.models import User, Candidate
 from bot.utils import singleton
 
 logger = loguru.logger
@@ -47,10 +47,11 @@ class ApiService:
         except Exception as e:
             logger.exception(f"Unexpected error occurred: {e}")
 
-    async def get_user(self, telegram_id: int) -> User | None:
-        url = urljoin(self.backend_url, f"api/users/{telegram_id}/")
+    async def get_user_by_tg(self, telegram_id: int) -> User | None:
+        url = urljoin(self.backend_url, f"api/users/get_user_by_tg/")
+        data = {"tg_id": telegram_id}
         status_code, profile_data = await self._api_request(
-            "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}
+            "post", url, data, {"Authorization": f"Api-Key {self.api_key}"}
         )
         if status_code == 200 and profile_data:
             return User.from_dict(profile_data)
@@ -69,6 +70,14 @@ class ApiService:
             return User.from_dict(profile_data)
 
         return None
+
+    async def get_candidates(self, nomination: str) -> list[Candidate]:
+        url = urljoin(self.backend_url, f"api/candidates/{nomination}/")
+        status_code, candidates = await self._api_request("get", url)
+        if status_code == 200 and candidates:
+            return candidates
+
+        return []
 
 
 api_service = ApiService()

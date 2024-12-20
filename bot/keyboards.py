@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as Btn
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.functions import text
@@ -19,31 +19,29 @@ def ok() -> InlineKeyboardMarkup:
 
 def select_nomination() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
-    kb.row(InlineKeyboardButton(text=text(ButtonText.channel_of_the_year), callback_data="channel_of_the_year"))
+    kb.row(Btn(text=text(ButtonText.channel_nom), callback_data="channel_nom"))
     kb.row(
-        InlineKeyboardButton(text=text(ButtonText.admin_of_the_year), callback_data="admin_of_the_year"),
-        InlineKeyboardButton(text=text(ButtonText.theme_of_the_year), callback_data="theme_of_the_year"),
+        Btn(text=text(ButtonText.admin_nom), callback_data="admin_nom"),
+        Btn(text=text(ButtonText.theme_nom), callback_data="theme_nom"),
     )
     kb.row(
-        InlineKeyboardButton(
-            text=text(ButtonText.content_creator_of_the_year), callback_data="content_creator_of_the_year"
-        ),
-        InlineKeyboardButton(text=text(ButtonText.manager_of_the_year), callback_data="manager_of_the_year"),
+        Btn(text=text(ButtonText.content_creator_nom), callback_data="content_creator_nom"),
+        Btn(text=text(ButtonText.manager_nom), callback_data="manager_nom"),
     )
     kb.row(
-        InlineKeyboardButton(text=text(ButtonText.blog_of_the_year), callback_data="blog_of_the_year"),
-        InlineKeyboardButton(text=text(ButtonText.welcome_bot_of_the_year), callback_data="welcome_bot_of_the_year"),
+        Btn(text=text(ButtonText.blog_nom), callback_data="blog_nom"),
+        Btn(text=text(ButtonText.welcome_bot_nom), callback_data="welcome_bot_nom"),
     )
     kb.row(
-        InlineKeyboardButton(text=text(ButtonText.posting_bot_of_the_year), callback_data="posting_bot_of_the_year"),
-        InlineKeyboardButton(text=text(ButtonText.buyer_of_the_year), callback_data="buyer_of_the_year"),
+        Btn(text=text(ButtonText.posting_bot_nom), callback_data="posting_bot_nom"),
+        Btn(text=text(ButtonText.buyer_nom), callback_data="buyer_nom"),
     )
     kb.row(
-        InlineKeyboardButton(text=text(ButtonText.admin_chat_of_the_year), callback_data="admin_chat_of_the_year"),
-        InlineKeyboardButton(text=text(ButtonText.info_gypsy_of_the_year), callback_data="info_gypsy_of_the_year"),
+        Btn(text=text(ButtonText.admin_chat_nom), callback_data="admin_chat_nom"),
+        Btn(text=text(ButtonText.info_gypsy_nom), callback_data="info_gypsy_nom"),
     )
     kb.row(
-        InlineKeyboardButton(text=text(ButtonText.scam_of_the_year), callback_data="scam_of_the_year"),
-        InlineKeyboardButton(text=text(ButtonText.clown_of_the_year), callback_data="clown_of_the_year"),
+        Btn(text=text(ButtonText.scam_nom), callback_data="scam_nom"),
+        Btn(text=text(ButtonText.clown_nom), callback_data="clown_nom"),
     )
     return kb.as_markup()

@@ -1,3 +1,8 @@
+import os
+
+from aiogram.types import FSInputFile
+
+
 def singleton(cls):
     instances = {}
 
@@ -8,3 +13,11 @@ def singleton(cls):
             return instances[cls]
 
     return Wrapper
+
+
+def get_photo(file_name: str) -> FSInputFile:
+    file_path = os.path.join(os.path.dirname(__file__), "static", f"{file_name}.png")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File {file_name} not found")
+
+    return FSInputFile(file_path)

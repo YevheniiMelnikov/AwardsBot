@@ -39,3 +39,7 @@
   http://localhost:8000/docs
   ```
 
+- The admin panel will be available at:
+  ```
+  http://localhost:8000/admin
+  ```

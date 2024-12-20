@@ -27,11 +27,21 @@ class Nomination(models.Model):
 class Candidate(models.Model):
     username = models.CharField(max_length=50)
     status = models.CharField(max_length=50, default="new")
-    nominations = models.ManyToManyField(Nomination, related_name="candidates")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="candidates")
 
     def __str__(self):
         return f"Candidate {self.username}"
+
+
+class CandidateNomination(models.Model):
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name="candidate_nominations")
+    nomination = models.ForeignKey(Nomination, on_delete=models.CASCADE, related_name="candidate_nominations")
+    votes_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ("candidate", "nomination")
+
+    def __str__(self):
+        return f"{self.candidate.username} in {self.nomination.name} - Votes: {self.votes_count}"
 
 
 class Vote(models.Model):

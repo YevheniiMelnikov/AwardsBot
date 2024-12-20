@@ -5,58 +5,83 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Candidate',
+            name="Candidate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('username', models.CharField(max_length=50)),
-                ('status', models.CharField(default='new', max_length=50)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("username", models.CharField(max_length=50)),
+                ("status", models.CharField(default="new", max_length=50)),
             ],
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tg_id', models.CharField(max_length=50, unique=True)),
-                ('username', models.CharField(blank=True, max_length=50, null=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("tg_id", models.CharField(max_length=50, unique=True)),
+                ("username", models.CharField(blank=True, max_length=50, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Nomination',
+            name="Nomination",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('winner', models.ForeignKey(blank=True, help_text='The winner of the nomination', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='won_nominations', to='awards.candidate')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=100)),
+                (
+                    "winner",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="The winner of the nomination",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="won_nominations",
+                        to="awards.candidate",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='candidate',
-            name='nominations',
-            field=models.ManyToManyField(related_name='candidates', to='awards.nomination'),
+            model_name="candidate",
+            name="nominations",
+            field=models.ManyToManyField(related_name="candidates", to="awards.nomination"),
         ),
         migrations.AddField(
-            model_name='candidate',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='candidates', to='awards.user'),
+            model_name="candidate",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="candidates", to="awards.user"
+            ),
         ),
         migrations.CreateModel(
-            name='Vote',
+            name="Vote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('candidate', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='votes', to='awards.candidate')),
-                ('nomination', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='votes', to='awards.nomination')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='votes', to='awards.user')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "candidate",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="votes", to="awards.candidate"
+                    ),
+                ),
+                (
+                    "nomination",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="votes", to="awards.nomination"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="votes", to="awards.user"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'nomination')},
+                "unique_together": {("user", "nomination")},
             },
         ),
     ]

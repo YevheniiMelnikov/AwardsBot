@@ -1,30 +1,36 @@
 from rest_framework import serializers
-from .models import User, Nomination, Candidate, Vote
+from .models import User, Nomination, Candidate, CandidateNomination, Vote
+
+
+class CandidateNominationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CandidateNomination
+        fields = ["id", "candidate", "nomination", "votes_count"]
 
 
 class CandidateSerializer(serializers.ModelSerializer):
-    nominations = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    candidate_nominations = CandidateNominationSerializer(many=True, read_only=True)
 
     class Meta:
         model = Candidate
-        fields = ["id", "username", "status", "nominations", "user"]
+        fields = ["id", "username", "status", "candidate_nominations"]
 
 
 class NominationSerializer(serializers.ModelSerializer):
-    candidates = CandidateSerializer(many=True, read_only=True)
+    candidate_nominations = CandidateNominationSerializer(many=True, read_only=True)
     winner = CandidateSerializer(read_only=True)
 
     class Meta:
         model = Nomination
-        fields = ["id", "name", "candidates", "winner"]
+        fields = ["id", "name", "candidate_nominations", "winner"]
 
 
 class UserSerializer(serializers.ModelSerializer):
-    candidates = CandidateSerializer(many=True, read_only=True)
+    votes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ["id", "tg_id", "username", "candidates"]
+        fields = ["id", "tg_id", "username", "votes"]
 
 
 class VoteSerializer(serializers.ModelSerializer):

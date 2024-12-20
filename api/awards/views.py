@@ -2,11 +2,13 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Nomination, Candidate, Vote
+from django.db.models import F
+from .models import User, Nomination, Candidate, CandidateNomination, Vote
 from .serializers import (
     UserSerializer,
     NominationSerializer,
     CandidateSerializer,
+    CandidateNominationSerializer,
     VoteSerializer,
 )
 
@@ -14,6 +16,25 @@ from .serializers import (
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    @action(detail=False, methods=["post"])
+    def get_user_by_tg(self, request):
+        tg_id = request.data.get("tg_id")
+        if not tg_id:
+            return Response(
+                {"error": "tg_id is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(tg_id=tg_id)
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"error": f"User with tg_id '{tg_id}' not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 class NominationViewSet(ModelViewSet):
@@ -28,7 +49,7 @@ class NominationViewSet(ModelViewSet):
             if not candidate_id:
                 return Response({"error": "candidate_id is required"}, status=status.HTTP_400_BAD_REQUEST)
             candidate = Candidate.objects.get(pk=candidate_id)
-            if candidate not in nomination.candidates.all():
+            if not CandidateNomination.objects.filter(candidate=candidate, nomination=nomination).exists():
                 return Response(
                     {"error": "Candidate is not part of this nomination"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -46,6 +67,11 @@ class NominationViewSet(ModelViewSet):
 class CandidateViewSet(ModelViewSet):
     queryset = Candidate.objects.all()
     serializer_class = CandidateSerializer
+
+
+class CandidateNominationViewSet(ModelViewSet):
+    queryset = CandidateNomination.objects.all()
+    serializer_class = CandidateNominationSerializer
 
 
 class VoteViewSet(ModelViewSet):
@@ -69,7 +95,7 @@ class VoteViewSet(ModelViewSet):
             nomination = Nomination.objects.get(pk=nomination_id)
             candidate = Candidate.objects.get(pk=candidate_id)
 
-            if candidate not in nomination.candidates.all():
+            if not CandidateNomination.objects.filter(candidate=candidate, nomination=nomination).exists():
                 return Response(
                     {"error": "Candidate is not part of this nomination"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -81,7 +107,11 @@ class VoteViewSet(ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            vote = Vote.objects.create(user=user, nomination=nomination, candidate=candidate)
+            Vote.objects.create(user=user, nomination=nomination, candidate=candidate)
+            candidate_nomination = CandidateNomination.objects.get(candidate=candidate, nomination=nomination)
+            candidate_nomination.votes_count = F("votes_count") + 1
+            candidate_nomination.save()
+
             return Response(
                 {"success": f"Vote cast for '{candidate.username}' in '{nomination.name}'"},
                 status=status.HTTP_201_CREATED,

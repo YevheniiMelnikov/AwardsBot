@@ -2,5 +2,6 @@ from aiogram.fsm.state import StatesGroup, State
 
 
 class States(StatesGroup):
-    select_category = State()
+    select_nomination = State()
     feedback = State()
+    vote_menu = State()
