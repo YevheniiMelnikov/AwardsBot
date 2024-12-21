@@ -72,8 +72,11 @@ class ApiService:
         return None
 
     async def get_candidates(self, nomination: str) -> list[Candidate]:
-        url = urljoin(self.backend_url, f"api/candidates/{nomination}/")
-        status_code, candidates = await self._api_request("get", url)
+        url = urljoin(self.backend_url, f"api/candidates/")
+        data = {"nomination": nomination}
+        status_code, candidates = await self._api_request(
+            "get", url, data=data, headers={"Authorization": f"Api-Key {self.api_key}"}
+        )
         if status_code == 200 and candidates:
             return candidates
 

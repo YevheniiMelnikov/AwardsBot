@@ -3,10 +3,12 @@ from enum import Enum, auto
 
 class MessageText(Enum):
     greetings = auto()
-    help = auto()
-    feedback_sent = auto()
-    incoming_feedback = auto()
-    select_category = auto()
+    select_nomination = auto()
+    vote_accepted = auto()
+    choose_candidate = auto()
+    new_candidate = auto()
+    candidate_description = auto()
+    candidate_request = auto()
 
     def __str__(self) -> str:
         return f"messages.{self.name}"
@@ -14,9 +16,11 @@ class MessageText(Enum):
 
 class ButtonText(Enum):
     ok = auto()
-    vote = auto()
+    new_candidate = auto()
+    back = auto()
     launch = auto()
     channel_nom = auto()
+    main_menu = auto()
     admin_nom = auto()
     content_creator_nom = auto()
     blog_nom = auto()

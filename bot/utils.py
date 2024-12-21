@@ -21,3 +21,8 @@ def get_photo(file_name: str) -> FSInputFile:
         raise FileNotFoundError(f"File {file_name} not found")
 
     return FSInputFile(file_path)
+
+
+def get_nomination_verbose(nomination: str) -> str:
+    # TODO: MAP Nominations
+    nominations = {}

@@ -4,7 +4,8 @@ from contextlib import suppress
 import loguru
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import BotCommand, Message
+from aiogram.fsm.context import FSMContext
+from aiogram.types import BotCommand, Message, CallbackQuery
 
 from bot.core.text_manager import ResourceType, resource_manager
 
@@ -30,3 +31,7 @@ async def send_msg_to_admin(text: str, message: Message) -> None:
     )
     with suppress(TelegramBadRequest):
         await message.delete()
+
+
+async def process_vote(call: CallbackQuery, state: FSMContext) -> None:
+    pass  # TODO: HANDLE VOTE WITH API REQUEST

@@ -23,9 +23,3 @@ async def cmd_start(message: Message, state: FSMContext):
     if not await api_service.get_user_by_tg(message.from_user.id):
         await api_service.create_user(message)
     await state.set_state(States.select_nomination)
-
-
-@cmd_router.message(Command("help"))
-async def cmd_help(message: Message, state: FSMContext):
-    await message.answer(text(MessageText.help))
-    await state.set_state(States.feedback)

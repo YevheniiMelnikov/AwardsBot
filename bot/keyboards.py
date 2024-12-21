@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton as Btn
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.core.models import Candidate
 from bot.functions import text
 from bot.resources.texts import ButtonText
 
@@ -14,6 +15,12 @@ def launch() -> InlineKeyboardMarkup:
 def ok() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     kb.button(text=text(ButtonText.ok), callback_data="ok")
+    return kb.as_markup(one_time_keyboard=True)
+
+
+def back() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    kb.button(text=text(ButtonText.back), callback_data="back")
     return kb.as_markup(one_time_keyboard=True)
 
 
@@ -45,3 +52,18 @@ def select_nomination() -> InlineKeyboardMarkup:
         Btn(text=text(ButtonText.clown_nom), callback_data="clown_nom"),
     )
     return kb.as_markup()
+
+
+def choose_candidate(candidates: list[Candidate]) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    if candidates:
+        pass  # TODO: add buttons here
+    kb.button(text=text(ButtonText.new_candidate), callback_data="new_candidate")
+    kb.button(text=text(ButtonText.back), callback_data="back")
+    return kb.as_markup()
+
+
+def main_menu() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    kb.button(text=text(ButtonText.main_menu), callback_data="launch")
+    return kb.as_markup(one_time_keyboard=True)

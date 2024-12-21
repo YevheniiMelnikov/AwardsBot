@@ -5,3 +5,6 @@ class States(StatesGroup):
     select_nomination = State()
     feedback = State()
     vote_menu = State()
+    get_vote = State()
+    new_candidate = State()
+    candidate_description = State()
