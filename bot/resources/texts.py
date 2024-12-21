@@ -9,6 +9,7 @@ class MessageText(Enum):
     new_candidate = auto()
     candidate_description = auto()
     candidate_request = auto()
+    already_voted = auto()
 
     def __str__(self) -> str:
         return f"messages.{self.name}"

@@ -11,7 +11,7 @@ from bot.functions import text, process_vote
 import bot.keyboards as kb
 from bot.states import States
 from bot.resources.texts import MessageText
-from bot.utils import get_photo, get_nomination_verbose
+from bot.utils import get_photo, get_nomination_verbose, map_candidates_to_votes
 
 main_router = Router()
 logger = loguru.logger
@@ -23,28 +23,37 @@ async def select_nomination(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.answer_photo(
         get_photo("nominations"), caption=text(MessageText.select_nomination), reply_markup=kb.select_nomination()
     )
-    await call.message.delete()
     await state.set_state(States.vote_menu)
+    await call.message.delete()
 
 
 @main_router.callback_query(States.vote_menu)
 async def vote_menu(call: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(nomination=call.data)
-    candidates = await api_service.get_candidates(call.data)
+    user = await api_service.get_user_by_tg(call.from_user.id)
+    assert user
+    if await api_service.has_user_voted(user.tg_id, call.data):
+        await call.answer(text(MessageText.already_voted), show_alert=True)
+        return
+
+    all_candidates = await api_service.get_all_candidates()
+    candidate_nominations = await api_service.get_candidate_nominations(call.data)
+    candidates_data = map_candidates_to_votes(all_candidates, candidate_nominations)
     await call.message.answer_photo(
         get_photo(call.data),
         caption=text(MessageText.choose_candidate),
-        reply_markup=kb.choose_candidate(candidates),
+        reply_markup=kb.choose_candidate(candidates_data),
     )
     await state.set_state(States.get_vote)
+    await call.message.delete()
 
 
 @main_router.callback_query(States.get_vote)
 async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
     match call.data:
         case "back":
-            await state.set_state(States.select_nomination)
             await state.clear()
+            await state.set_state(States.vote_menu)
             await call.message.answer_photo(
                 get_photo("nominations"),
                 caption=text(MessageText.select_nomination),
@@ -62,9 +71,11 @@ async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
 
         case _:
             await call.answer(text(MessageText.vote_accepted), show_alert=True)
-            await process_vote(call, state)
-            await state.set_state(States.select_nomination)
+            data = await state.get_data()
+            if await process_vote(call, data):
+                logger.info(f"User {call.from_user.id} voted for {call.data}")
             await state.clear()
+            await state.set_state(States.vote_menu)
             await call.message.answer_photo(
                 get_photo("nominations"),
                 caption=text(MessageText.select_nomination),
@@ -81,11 +92,13 @@ async def new_candidate(event: CallbackQuery | Message, state: FSMContext) -> No
     if isinstance(event, CallbackQuery):
         data = await state.get_data()
         nom = data.get("nomination")
-        candidates = await api_service.get_candidates(nom)
+        all_candidates = await api_service.get_all_candidates()
+        candidate_nominations = await api_service.get_candidate_nominations(nom)
+        candidates_data = map_candidates_to_votes(all_candidates, candidate_nominations)
         await event.message.answer_photo(
             get_photo(nom),
             caption=text(MessageText.choose_candidate),
-            reply_markup=kb.choose_candidate(candidates),
+            reply_markup=kb.choose_candidate(candidates_data),
         )
         await state.set_state(States.get_vote)
         await event.message.delete()

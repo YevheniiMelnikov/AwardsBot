@@ -6,7 +6,7 @@ import httpx
 import loguru
 from aiogram.types import Message
 
-from bot.core.models import User, Candidate
+from bot.core.models import User, CandidateNomination, Candidate, Nomination
 from bot.utils import singleton
 
 logger = loguru.logger
@@ -48,13 +48,12 @@ class ApiService:
             logger.exception(f"Unexpected error occurred: {e}")
 
     async def get_user_by_tg(self, telegram_id: int) -> User | None:
-        url = urljoin(self.backend_url, f"api/users/get_user_by_tg/")
-        data = {"tg_id": telegram_id}
-        status_code, profile_data = await self._api_request(
-            "post", url, data, {"Authorization": f"Api-Key {self.api_key}"}
+        url = urljoin(self.backend_url, f"api/users/?tg_id={telegram_id}")
+        status_code, users_data = await self._api_request(
+            "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}
         )
-        if status_code == 200 and profile_data:
-            return User.from_dict(profile_data)
+        if status_code == 200 and users_data:
+            return User.from_dict(users_data.get("results")[0])
 
         return None
 
@@ -71,16 +70,82 @@ class ApiService:
 
         return None
 
-    async def get_candidates(self, nomination: str) -> list[Candidate]:
-        url = urljoin(self.backend_url, f"api/candidates/")
-        data = {"nomination": nomination}
+    async def get_candidate_nominations(self, nomination: str) -> list[CandidateNomination]:
+        url = urljoin(self.backend_url, f"api/candidatenominations/?nomination_name={nomination}")
         status_code, candidates = await self._api_request(
-            "get", url, data=data, headers={"Authorization": f"Api-Key {self.api_key}"}
+            "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}
         )
         if status_code == 200 and candidates:
-            return candidates
+            candidate_nominations = candidates.get("results")
+            return [CandidateNomination.from_dict(candidate) for candidate in candidate_nominations]
 
         return []
+
+    async def get_all_candidates(self) -> list[Candidate]:
+        url = urljoin(self.backend_url, "api/candidates/")
+        status_code, candidates = await self._api_request(
+            "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}
+        )
+        if status_code == 200 and candidates:
+            return [
+                Candidate(
+                    id=candidate["id"],
+                    username=candidate["username"],
+                    status=candidate["status"],
+                    nominations=[
+                        CandidateNomination(
+                            id=nomination["id"],
+                            candidate=nomination["candidate"],
+                            nomination=nomination["nomination"],
+                            votes_count=nomination["votes_count"],
+                        )
+                        for nomination in candidate.get("candidate_nominations", [])
+                    ],
+                )
+                for candidate in candidates.get("results", [])
+            ]
+
+        return []
+
+    async def increment_vote(self, nomination_id: int, new_votes_count: int) -> bool:
+        url = urljoin(self.backend_url, f"api/candidatenominations/{nomination_id}/")
+        data = {"votes_count": new_votes_count}
+        status_code, _ = await self._api_request(
+            "patch", url, data=data, headers={"Authorization": f"Api-Key {self.api_key}"}
+        )
+        return status_code == 200
+
+    async def get_all_nominations(self) -> list[Nomination]:
+        url = urljoin(self.backend_url, "api/nominations/")
+        status_code, nominations = await self._api_request(
+            "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}
+        )
+        if status_code == 200 and nominations:
+            return [Nomination.from_dict(nomination) for nomination in nominations.get("results", [])]
+
+        return []
+
+    async def has_user_voted(self, user_tg_id: int, nomination_name: str) -> bool:
+        url = urljoin(self.backend_url, f"api/votes/")
+        params = {"user__tg_id": user_tg_id, "nomination__name": nomination_name}
+        status_code, votes = await self._api_request(
+            "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}, data=params
+        )
+        return status_code == 200 and votes.get("count", 0) > 0
+
+    async def create_vote(self, user_tg_id: int, nomination_id: int, candidate_id: int) -> bool:
+        user = await self.get_user_by_tg(user_tg_id)
+        assert user
+        url = urljoin(self.backend_url, "api/votes/")
+        data = {
+            "user": user.id,
+            "nomination": nomination_id,
+            "candidate": candidate_id,
+        }
+        status_code, _ = await self._api_request(
+            "post", url, data=data, headers={"Authorization": f"Api-Key {self.api_key}"}
+        )
+        return status_code == 201
 
 
 api_service = ApiService()

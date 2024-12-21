@@ -22,6 +22,7 @@ async def main() -> None:
         return
 
     bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode="HTML"))
+    assert bot
     redis_url = os.getenv("REDIS_HOST")
     await set_bot_commands()
     dp = Dispatcher(storage=RedisStorage.from_url(f"{redis_url}/0"))

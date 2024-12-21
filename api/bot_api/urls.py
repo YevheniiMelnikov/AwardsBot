@@ -4,12 +4,14 @@ from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 
-from api.awards.views import UserViewSet, NominationViewSet, CandidateViewSet
+from api.awards.views import UserViewSet, NominationViewSet, CandidateViewSet, CandidateNominationViewSet, VoteViewSet
 
 router = DefaultRouter()
 router.register(r"users", UserViewSet)
 router.register(r"nominations", NominationViewSet)
 router.register(r"candidates", CandidateViewSet)
+router.register(r"candidatenominations", CandidateNominationViewSet)
+router.register(r"votes", VoteViewSet)
 
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),

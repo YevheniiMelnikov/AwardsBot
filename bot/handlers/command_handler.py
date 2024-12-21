@@ -23,3 +23,4 @@ async def cmd_start(message: Message, state: FSMContext):
     if not await api_service.get_user_by_tg(message.from_user.id):
         await api_service.create_user(message)
     await state.set_state(States.select_nomination)
+    await message.delete()

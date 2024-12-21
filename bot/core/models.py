@@ -20,21 +20,22 @@ class BaseEntity:
 
 @dataclass
 class User(BaseEntity):
+    id: int
     tg_id: int
     username: str
 
 
 @dataclass
 class Candidate(BaseEntity):
+    id: int
     username: str
+    status: str
     nominations: list["CandidateNomination"] = field(default_factory=list)
-
-    def total_votes(self) -> int:
-        return sum(nomination.votes for nomination in self.nominations)
 
 
 @dataclass
 class Nomination(BaseEntity):
+    id: int
     name: str
     candidates: list["CandidateNomination"] = field(default_factory=list)
     winner: "Candidate" = None
@@ -42,6 +43,7 @@ class Nomination(BaseEntity):
 
 @dataclass
 class CandidateNomination(BaseEntity):
-    candidate: Candidate
-    nomination: Nomination
-    votes: int = 0
+    id: int
+    candidate: int
+    nomination: int
+    votes_count: int = 0
