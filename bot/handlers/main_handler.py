@@ -35,7 +35,8 @@ async def vote_menu(call: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(nomination=call.data)
     user = await api_service.get_user_by_tg(call.from_user.id)
     assert user
-    if await api_service.has_user_voted(user.tg_id, call.data):
+    nom = await api_service.get_nomination_by_name(call.data)
+    if await api_service.has_user_voted(user.tg_id, nom.id):
         await call.answer(text(MessageText.already_voted), show_alert=True)
         return
 
