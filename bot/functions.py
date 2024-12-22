@@ -1,6 +1,7 @@
 import os
 from contextlib import suppress
 
+import httpx
 import loguru
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
@@ -54,3 +55,15 @@ async def process_vote(call: CallbackQuery, data: dict[str, str]) -> bool:
         return True
 
     return False
+
+
+async def accept_candidate(username: str, nomination_name: str) -> None:
+    nomination = await api_service.get_nomination_by_name(nomination_name)
+    candidate = await api_service.get_candidate_by_username(username)
+    await api_service.create_candidate_nomination(candidate.id, nomination.id)
+    await api_service.update_candidate_status(candidate.id, "approved")
+
+
+async def reject_candidate(username: str) -> None:
+    candidate = await api_service.get_candidate_by_username(username)
+    await api_service.update_candidate_status(candidate.id, "rejected")

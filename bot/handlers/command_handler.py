@@ -22,5 +22,5 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer_photo(get_photo("welcome"), caption=text(MessageText.greetings), reply_markup=kb.launch())
     if not await api_service.get_user_by_tg(message.from_user.id):
         await api_service.create_user(message)
-    await state.set_state(States.select_nomination)
+    await state.set_state(States.main_menu)
     await message.delete()

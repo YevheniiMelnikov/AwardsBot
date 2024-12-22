@@ -7,6 +7,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
 from dotenv import load_dotenv
 
+from bot.handlers.admin_handler import admin_router
 from bot.handlers.command_handler import cmd_router
 from bot.functions import set_bot_commands
 from bot.handlers.main_handler import main_router
@@ -26,7 +27,7 @@ async def main() -> None:
     redis_url = os.getenv("REDIS_HOST")
     await set_bot_commands()
     dp = Dispatcher(storage=RedisStorage.from_url(f"{redis_url}/0"))
-    dp.include_routers(cmd_router, main_router)
+    dp.include_routers(cmd_router, admin_router, main_router)
 
     logger.info("Starting bot ...")
     try:

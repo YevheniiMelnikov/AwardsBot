@@ -10,6 +10,9 @@ class MessageText(Enum):
     candidate_description = auto()
     candidate_request = auto()
     already_voted = auto()
+    request_sent = auto()
+    candidate_exists = auto()
+    incoming_request = auto()
 
     def __str__(self) -> str:
         return f"messages.{self.name}"
@@ -20,6 +23,8 @@ class ButtonText(Enum):
     new_candidate = auto()
     back = auto()
     launch = auto()
+    accept = auto()
+    reject = auto()
     channel_nom = auto()
     main_menu = auto()
     admin_nom = auto()

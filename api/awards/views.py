@@ -25,6 +25,8 @@ class UserViewSet(ModelViewSet):
 class NominationViewSet(ModelViewSet):
     queryset = Nomination.objects.all()
     serializer_class = NominationSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["name"]
 
     @action(detail=True, methods=["post"])
     def set_winner(self, request, pk=None):
@@ -52,6 +54,8 @@ class NominationViewSet(ModelViewSet):
 class CandidateViewSet(ModelViewSet):
     queryset = Candidate.objects.all()
     serializer_class = CandidateSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["username"]
 
 
 class CandidateNominationFilter(FilterSet):

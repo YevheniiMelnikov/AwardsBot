@@ -69,5 +69,14 @@ def choose_candidate(candidates: dict[str, int]) -> InlineKeyboardMarkup:
 
 def main_menu() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
-    kb.button(text=text(ButtonText.main_menu), callback_data="launch")
+    kb.button(text=text(ButtonText.main_menu), callback_data="main_menu")
+    return kb.as_markup(one_time_keyboard=True)
+
+
+def handle_candidate_request(data: dict[str, str]) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    username = data.get("username")
+    nom = data.get("nomination")
+    kb.button(text=text(ButtonText.accept), callback_data=f"accept-{username}-{nom}")
+    kb.button(text=text(ButtonText.reject), callback_data=f"reject-{username}-{nom}")
     return kb.as_markup(one_time_keyboard=True)

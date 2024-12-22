@@ -2,6 +2,10 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from .models import Nomination
 
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 @receiver(post_migrate)
 def create_nominations(sender, **kwargs):
@@ -24,3 +28,16 @@ def create_nominations(sender, **kwargs):
 
         for name in nominations:
             Nomination.objects.get_or_create(name=name)
+
+
+@receiver(post_migrate)
+def create_default_superuser(sender, **kwargs):
+    try:
+        if not User.objects.filter(username="awards_admin").exists():
+            User.objects.create_superuser(
+                username="awards_admin",
+                email="admin@example.com",
+                password="awards_admin",
+            )
+    except Exception as e:
+        print(f"Error creating default superuser: {e}")
