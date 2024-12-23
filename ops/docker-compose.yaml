@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     image: postgres:17.2
     ports:
-      - '5432:5432'
+      - '5433:5432'
     env_file:
       - .env
     volumes:
@@ -46,10 +46,17 @@ services:
     restart: unless-stopped
     image: redis:7.4.0
     ports:
-      - '6379:6379'
+      - '6380:6380'
+    env_file:
+      - .env
     volumes:
       - redis_data:/var/lib/redis
+    command: ["redis-server", "--port", "6380"]
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  default:
+    name: my_network
