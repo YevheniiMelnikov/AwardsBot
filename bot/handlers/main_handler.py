@@ -32,15 +32,8 @@ async def select_nomination(call: CallbackQuery, state: FSMContext) -> None:
 
 @main_router.callback_query(States.vote_menu)
 async def vote_menu(call: CallbackQuery, state: FSMContext) -> None:
-    await state.update_data(nomination=call.data)
-    user = await api_service.get_user_by_tg(call.from_user.id)
-    assert user
-    nom = await api_service.get_nomination_by_name(call.data)
-    if await api_service.has_user_voted(user.tg_id, nom.id):
-        await call.answer(text(MessageText.already_voted), show_alert=True)
-        return
-
     await call.answer()
+    await state.update_data(nomination=call.data)
     all_candidates = await api_service.get_all_candidates()
     candidate_nominations = await api_service.get_candidate_nominations(call.data)
     candidates_data = map_candidates_to_votes(all_candidates, candidate_nominations)
@@ -55,6 +48,8 @@ async def vote_menu(call: CallbackQuery, state: FSMContext) -> None:
 
 @main_router.callback_query(States.get_vote)
 async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+
     match call.data:
         case "back":
             await call.answer()
@@ -68,7 +63,6 @@ async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
 
         case "new_candidate":
             await call.answer()
-            data = await state.get_data()
             nom_verbose = get_nomination_verbose(data.get("nomination"))
             await state.update_data(nom_verbose=nom_verbose)
             enter_username = await call.message.answer(
@@ -78,6 +72,13 @@ async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
             await state.set_state(States.new_candidate)
 
         case _:
+            user = await api_service.get_user_by_tg(call.from_user.id)
+            assert user
+            nom = await api_service.get_nomination_by_name(data.get("nomination"))
+            if await api_service.has_user_voted(user.tg_id, nom.id):
+                await call.answer(text(MessageText.already_voted), show_alert=True)
+                return
+
             await call.answer(text(MessageText.vote_accepted), show_alert=True)
             data = await state.get_data()
             if await process_vote(call, data):
