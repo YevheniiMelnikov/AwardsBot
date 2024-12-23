@@ -115,7 +115,8 @@ async def new_candidate(event: CallbackQuery | Message, state: FSMContext, bot: 
             reply_markup=kb.choose_candidate(candidates_data),
         )
         await state.set_state(States.get_vote)
-        await event.message.delete()
+        with suppress(TelegramBadRequest):
+            await event.message.delete()
     else:
         if candidate_id := await api_service.create_candidate(event.text):
             description_msg = await event.answer(text(MessageText.candidate_description), reply_markup=kb.back())
