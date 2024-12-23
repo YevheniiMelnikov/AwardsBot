@@ -24,9 +24,10 @@ async def main() -> None:
 
     bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode="HTML"))
     assert bot
-    redis_url = os.getenv("REDIS_HOST")
     await set_bot_commands()
-    dp = Dispatcher(storage=RedisStorage.from_url(f"{redis_url}/0"))
+    redis_host = os.getenv("REDIS_HOST")
+    redis_port = os.getenv("REDIS_PORT")
+    dp = Dispatcher(storage=RedisStorage.from_url(f"redis://{redis_host}:{redis_port}/0"))
     dp.include_routers(cmd_router, admin_router, main_router)
 
     logger.info("Starting bot ...")
