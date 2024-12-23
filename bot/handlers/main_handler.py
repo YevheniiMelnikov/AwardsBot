@@ -43,7 +43,8 @@ async def vote_menu(call: CallbackQuery, state: FSMContext) -> None:
         reply_markup=kb.choose_candidate(candidates_data),
     )
     await state.set_state(States.get_vote)
-    await call.message.delete()
+    with suppress(TelegramBadRequest):
+        await call.message.delete()
 
 
 @main_router.callback_query(States.get_vote)
@@ -100,14 +101,15 @@ async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
 async def new_candidate(event: CallbackQuery | Message, state: FSMContext, bot: Bot) -> None:
     data = await state.get_data()
     del_msg_id = data.get("del_msg_id")
+    nom = data.get("nomination")
+    candidate_nominations = await api_service.get_candidate_nominations(nom)
+
     with suppress(TelegramBadRequest):
         await bot.delete_message(chat_id=event.from_user.id, message_id=del_msg_id)
 
     if isinstance(event, CallbackQuery):
         await event.answer()
-        nom = data.get("nomination")
         all_candidates = await api_service.get_all_candidates()
-        candidate_nominations = await api_service.get_candidate_nominations(nom)
         candidates_data = map_candidates_to_votes(all_candidates, candidate_nominations)
         await event.message.answer_photo(
             get_photo(nom),
@@ -117,17 +119,33 @@ async def new_candidate(event: CallbackQuery | Message, state: FSMContext, bot: 
         await state.set_state(States.get_vote)
         with suppress(TelegramBadRequest):
             await event.message.delete()
+
     else:
-        if candidate_id := await api_service.create_candidate(event.text):
-            description_msg = await event.answer(text(MessageText.candidate_description), reply_markup=kb.back())
-            await state.update_data(
-                username=event.text, candidate_id=candidate_id, del_msg_id=description_msg.message_id
-            )
-            await state.set_state(States.candidate_description)
-            await event.delete()
+        if len(event.text) > 30:
+            await event.answer(text(MessageText.username_too_long))
             return
 
-        await event.answer(text(MessageText.candidate_exists))
+        all_candidates = await api_service.get_all_candidates()
+        existing_candidates = [candidate for candidate in all_candidates if candidate.username == event.text]
+        nomination = await api_service.get_nomination_by_name(nom)
+
+        if existing_candidates:
+            is_in_nomination = any(
+                any(nomination_nomination.nomination == nomination.id for nomination_nomination in
+                    candidate.nominations)
+                for candidate in existing_candidates
+            )
+            if is_in_nomination:
+                await event.answer(text(MessageText.candidate_exists))
+                return
+
+        candidate_id = await api_service.create_candidate(event.text)
+        description_msg = await event.answer(text(MessageText.candidate_description), reply_markup=kb.back())
+        await state.update_data(
+            username=event.text, candidate_id=candidate_id, del_msg_id=description_msg.message_id
+        )
+        await state.set_state(States.candidate_description)
+        await event.delete()
 
 
 @main_router.callback_query(States.candidate_description)
@@ -145,15 +163,19 @@ async def candidate_description(event: CallbackQuery | Message, state: FSMContex
             text(MessageText.new_candidate).format(nomination=data.get("nom_verbose")), reply_markup=kb.back()
         )
         await state.set_state(States.new_candidate)
-        await event.message.delete()
+        with suppress(TelegramBadRequest):
+            await event.message.delete()
     else:
         await event.answer(text(MessageText.candidate_request), reply_markup=kb.main_menu())
+        user = await api_service.get_user_by_tg(event.from_user.id)
+        author = user.username if user.username else user.tg_id
         candidate_data = {
             "username": data.get("username"),
             "candidate_id": data.get("candidate_id"),
             "nomination": data.get("nomination"),
             "nom_verbose": data.get("nom_verbose"),
             "description": event.text,
+            "author": author,
         }
         async with httpx.AsyncClient():
             await bot.send_message(
@@ -177,3 +199,4 @@ async def request_sent(call: CallbackQuery, state: FSMContext) -> None:
         reply_markup=kb.select_nomination(),
     )
     await state.set_state(States.vote_menu)
+    await call.message.delete()

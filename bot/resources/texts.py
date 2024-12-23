@@ -13,6 +13,7 @@ class MessageText(Enum):
     request_sent = auto()
     candidate_exists = auto()
     incoming_request = auto()
+    username_too_long = auto()
 
     def __str__(self) -> str:
         return f"messages.{self.name}"
