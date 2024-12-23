@@ -137,14 +137,15 @@ class ApiService:
 
         return []
 
-    async def has_user_voted(self, user_tg_id: int, nomination_id: int) -> bool:
+    async def has_user_voted(self, user_id: int, nomination_id: int) -> bool:
         url = urljoin(self.backend_url, f"api/votes/")
-        params = {"user__tg_id": user_tg_id}
+        params = {"user": user_id}
         status_code, votes = await self._api_request(
             "get", url, headers={"Authorization": f"Api-Key {self.api_key}"}, params=params
         )
         if status_code == 200 and isinstance(votes, list):
-            return any(vote["nomination"] == nomination_id for vote in votes)
+            return any(vote["nomination"] == nomination_id for vote in votes if vote["user"] == user_id)
+
         return False
 
     async def create_vote(self, user_tg_id: int, nomination_id: int, candidate_id: int) -> bool:

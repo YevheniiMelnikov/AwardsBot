@@ -75,7 +75,7 @@ async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
             user = await api_service.get_user_by_tg(call.from_user.id)
             assert user
             nom = await api_service.get_nomination_by_name(data.get("nomination"))
-            if await api_service.has_user_voted(user.tg_id, nom.id):
+            if await api_service.has_user_voted(user.id, nom.id):
                 await call.answer(text(MessageText.already_voted), show_alert=True)
                 return
 
