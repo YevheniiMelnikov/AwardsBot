@@ -178,9 +178,8 @@ async def candidate_description(event: CallbackQuery | Message, state: FSMContex
         }
         async with httpx.AsyncClient():
             await bot.send_message(
-                chat_id=205159314,
-                # chat_id=os.getenv("CHAT_ID"),
-                # message_thread_id=os.getenv("THREAD_ID"),
+                chat_id=os.getenv("CHAT_ID"),
+                message_thread_id=os.getenv("THREAD_ID"),
                 text=text(MessageText.incoming_request).format(**candidate_data),
                 reply_markup=kb.handle_candidate_request(candidate_data),
             )
