@@ -35,7 +35,7 @@ async def vote_menu(call: CallbackQuery, state: FSMContext) -> None:
     await call.answer()
     await state.update_data(nomination=call.data)
     all_candidates = await api_service.get_all_candidates()
-    candidate_nominations = await api_service.get_candidate_nominations(call.data)
+    candidate_nominations = await api_service.get_candidate_nominations(call.data)  # TODO: SORT BY VOTES
     candidates_data = map_candidates_to_votes(all_candidates, candidate_nominations)
     await call.message.answer_photo(
         get_photo(call.data),
@@ -81,8 +81,7 @@ async def get_vote(call: CallbackQuery, state: FSMContext) -> None:
                 return
 
             await call.answer(text(MessageText.vote_accepted), show_alert=True)
-            data = await state.get_data()
-            if await process_vote(call, data):
+            if await process_vote(call, nom):
                 logger.info(f"User {call.from_user.id} voted for {call.data}")
             await state.clear()
             await state.set_state(States.vote_menu)
@@ -179,8 +178,9 @@ async def candidate_description(event: CallbackQuery | Message, state: FSMContex
         }
         async with httpx.AsyncClient():
             await bot.send_message(
-                chat_id=os.getenv("CHAT_ID"),
-                message_thread_id=os.getenv("THREAD_ID"),
+                chat_id=205159314,
+                # chat_id=os.getenv("CHAT_ID"),
+                # message_thread_id=os.getenv("THREAD_ID"),
                 text=text(MessageText.incoming_request).format(**candidate_data),
                 reply_markup=kb.handle_candidate_request(candidate_data),
             )

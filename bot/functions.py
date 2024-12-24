@@ -8,6 +8,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BotCommand, Message, CallbackQuery
 
 from bot.core.api_service import api_service
+from bot.core.models import Nomination
 from bot.core.text_manager import ResourceType, resource_manager
 
 logger = loguru.logger
@@ -27,19 +28,7 @@ async def set_bot_commands() -> None:
         logger.warning("No commands to set")
 
 
-async def send_msg_to_admin(msg_text: str, message: Message) -> None:
-    await bot.send_message(
-        chat_id=os.getenv("CHAT_ID"),
-        message_thread_id=os.getenv("THREAD_ID"),
-        text=msg_text,
-    )
-    with suppress(TelegramBadRequest):
-        await message.delete()
-
-
-async def process_vote(call: CallbackQuery, data: dict[str, str]) -> bool:
-    nominations = await api_service.get_all_nominations()
-    nomination = next((n for n in nominations if n.name == data.get("nomination")), None)
+async def process_vote(call: CallbackQuery, nomination: Nomination) -> bool:
     candidates = await api_service.get_all_candidates()
     candidate = next((c for c in candidates if c.username == call.data), None)
     candidate_nomination = next((n for n in candidate.nominations if n.nomination == nomination.id), None)

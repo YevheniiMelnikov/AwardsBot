@@ -56,7 +56,8 @@ def select_nomination() -> InlineKeyboardMarkup:
 def choose_candidate(candidates: dict[str, int]) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     if candidates:
-        for username, votes in candidates.items():
+        sorted_candidates = sorted(candidates.items(), key=lambda item: item[1], reverse=True)
+        for username, votes in sorted_candidates:
             kb.button(text=f"[{votes} 👑] {username}", callback_data=username)
             kb.adjust(1)
 
@@ -65,6 +66,7 @@ def choose_candidate(candidates: dict[str, int]) -> InlineKeyboardMarkup:
     kb.button(text=text(ButtonText.back), callback_data="back")
     kb.adjust(1)
     return kb.as_markup()
+
 
 
 def main_menu() -> InlineKeyboardMarkup:
