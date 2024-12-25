@@ -25,7 +25,7 @@ class Nomination(models.Model):
 
 
 class Candidate(models.Model):
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, unique=True)
     status = models.CharField(max_length=50, default="new")
 
     def __str__(self):

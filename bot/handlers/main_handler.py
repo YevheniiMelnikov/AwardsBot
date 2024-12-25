@@ -101,6 +101,8 @@ async def new_candidate(event: CallbackQuery | Message, state: FSMContext, bot: 
     data = await state.get_data()
     del_msg_id = data.get("del_msg_id")
     nom = data.get("nomination")
+    nomination = await api_service.get_nomination_by_name(nom)
+    all_candidates = await api_service.get_all_candidates()
     candidate_nominations = await api_service.get_candidate_nominations(nom)
 
     with suppress(TelegramBadRequest):
@@ -108,7 +110,6 @@ async def new_candidate(event: CallbackQuery | Message, state: FSMContext, bot: 
 
     if isinstance(event, CallbackQuery):
         await event.answer()
-        all_candidates = await api_service.get_all_candidates()
         candidates_data = map_candidates_to_votes(all_candidates, candidate_nominations)
         await event.message.answer_photo(
             get_photo(nom),
@@ -124,15 +125,15 @@ async def new_candidate(event: CallbackQuery | Message, state: FSMContext, bot: 
             await event.answer(text(MessageText.username_too_long))
             return
 
-        all_candidates = await api_service.get_all_candidates()
-        existing_candidates = [candidate for candidate in all_candidates if candidate.username == event.text]
-        nomination = await api_service.get_nomination_by_name(nom)
+        existing_candidate = next(
+            (candidate for candidate in all_candidates if candidate.username == event.text),
+            None
+        )
 
-        if existing_candidates:
+        if existing_candidate:
             is_in_nomination = any(
-                any(nomination_nomination.nomination == nomination.id for nomination_nomination in
-                    candidate.nominations)
-                for candidate in existing_candidates
+                nomination_nomination.nomination == nomination.id
+                for nomination_nomination in existing_candidate.candidate_nominations
             )
             if is_in_nomination:
                 await event.answer(text(MessageText.candidate_exists))
